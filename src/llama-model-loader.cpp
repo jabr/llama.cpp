@@ -884,7 +884,10 @@ static bool weight_buft_supported(const llama_hparams & hparams, ggml_tensor * w
             } break;
         case GGML_OP_MUL_MAT:
             {
-                ggml_tensor * b = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, w->ne[0], 512, w->ne[2], w->ne[3]);
+                // Test with a 3D input tensor (ne[2] > 1) to ensure the buffer type supports batched operations.
+                // Some buffer types (like KLEIDIAI) only support 2D inputs, so this test ensures weights
+                // that need batched MUL_MAT operations don't get placed in incompatible buffers.
+                ggml_tensor * b = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, w->ne[0], 512, w->ne[2] > 1 ? w->ne[2] : 2, w->ne[3]);
                 op_tensor = ggml_mul_mat(ctx, w, b);
             } break;
         case GGML_OP_MUL_MAT_ID:
