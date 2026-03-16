@@ -1459,8 +1459,7 @@ class extra_buffer_type : ggml::cpu::extra_buffer_type {
             if (op->src[1]->buffer && !ggml_backend_buft_is_host(op->src[1]->buffer->buft)) {
                 return false;
             }
-            if ((op->src[1]->type == GGML_TYPE_F32 || op->src[1]->type == GGML_TYPE_I32) &&
-                ggml_ne(op->src[1], 2) == 1 && ggml_ne(op->src[1], 3) == 1) {
+            if (op->src[1]->type == GGML_TYPE_F32 || op->src[1]->type == GGML_TYPE_I32) {
                 return true;
             }
         }
