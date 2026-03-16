@@ -835,8 +835,12 @@ static int ggml_backend_sched_backend_id_from_cur(ggml_backend_sched_t sched, st
                     }
                 }
             }
-            SET_CAUSE(tensor, "1.wgt%d", i);
-            return src_backend_id;
+            if (src_backend_id != -1) {
+                SET_CAUSE(tensor, "1.wgt%d", i);
+                return src_backend_id;
+            }
+            // no backend supports both the weight's buffer type and this op
+            // the weight will need to be copied - continue to find a backend that supports the op
         }
     }
 
@@ -1148,7 +1152,9 @@ void ggml_backend_sched_split_graph(ggml_backend_sched_t sched, struct ggml_cgra
         for (int b = 0; b < sched->n_backends && *cur_backend_id == -1; b++) {
             ggml_backend_sched_set_if_supported(sched, node, b, cur_backend_id);
         }
-        GGML_ASSERT(*cur_backend_id != -1);
+        if (*cur_backend_id == -1) {
+            GGML_ABORT("no backend supports op %s (tensor: %s)", ggml_op_name(node->op), node->name);
+        }
     }
 
     // pass 5: split graph, find tensors that need to be copied

@@ -428,11 +428,18 @@ static bool ggml_backend_cpu_device_supports_op(ggml_backend_dev_t dev, const st
 
     // check extra buffer types
     // note: only the first sources are checked for extra buffer types to reduce overhead, increase if necessary
+    // if an extra buffer type supports the op, use it; otherwise fall through to the default CPU check
     for (int i = 0; i < 4; i++) {
         if (op->src[i] && op->src[i]->buffer &&
             ggml_backend_cpu_is_extra_buffer_type(op->src[i]->buffer->buft)) {
             auto * buf_extra = (ggml::cpu::extra_buffer_type *) op->src[i]->buffer->buft->context;
-            return buf_extra->supports_op(dev, op);
+            if (buf_extra->supports_op(dev, op)) {
+                return true;
+            }
+            // extra buffer type doesn't support this op - fall through to regular CPU check
+            // this allows operations like GATED_DELTA_NET to work even when some inputs
+            // are in KLEIDIAI buffers (which only handle MUL_MAT/GET_ROWS with Q4_0/Q8_0)
+            break;
         }
     }
 
