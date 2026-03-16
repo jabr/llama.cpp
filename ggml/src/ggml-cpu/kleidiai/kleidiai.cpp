@@ -1447,9 +1447,8 @@ class extra_buffer_type : ggml::cpu::extra_buffer_type {
         const int slot_total = kleidiai_collect_kernel_chain(op, kernel_chain);
         if ((op->op == GGML_OP_MUL_MAT || op->op == GGML_OP_GET_ROWS) &&
             (op->src[0]->type == GGML_TYPE_Q4_0 || op->src[0]->type == GGML_TYPE_Q8_0) &&
-            op->src[0]->buffer &&
             (ggml_n_dims(op->src[0]) == 2) &&
-            op->src[0]->buffer->buft == ggml_backend_cpu_kleidiai_buffer_type() &&
+            (!op->src[0]->buffer || op->src[0]->buffer->buft == ggml_backend_cpu_kleidiai_buffer_type()) &&
             slot_total > 0) {
             if (op->src[0]->type == GGML_TYPE_Q4_0 && ctx.kernels_q4 == nullptr) {
                 return false;
