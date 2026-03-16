@@ -476,9 +476,7 @@ void llama_context::sched_reserve() {
         LLAMA_LOG_INFO("%s: resolving fused Gated Delta Net support:\n", __func__);
 
         if (cparams.fused_gdn_ar) {
-            // FGDN AR is used for single-token generation, so test with n_seqs = 1
-            // This ensures weights are placed in appropriate buffers for the actual use case
-            auto * gf = graph_reserve(1, 1, 1, mctx.get(), true);
+            auto * gf = graph_reserve(1, n_seqs, n_outputs, mctx.get(), true);
             if (!gf) {
                 throw std::runtime_error("failed to reserve graph for fused Gated Delta Net check (autoregressive)");
             }
